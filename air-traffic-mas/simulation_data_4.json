@@ -1,0 +1,12 @@
+{
+    "tempo_atual": 6,
+    "pousos_restantes": 1,
+    "avioes_pousados": [
+        "plane3",
+        "plane1",
+        "plane6",
+        "plane5",
+        "plane2"
+    ],
+    "avioes_para_decolar": ["plane1"]
+}

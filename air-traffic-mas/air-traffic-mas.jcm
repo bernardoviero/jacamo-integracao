@@ -1,0 +1,15 @@
+mas traffic {
+    agent controller : controller.asl
+
+    agent plane1 : airplane.asl
+    agent plane2 : airplane.asl
+    agent plane3 : airplane.asl
+    agent plane4 : airplane.asl
+    agent plane5 : airplane.asl
+    agent plane6 : airplane.asl
+
+    workspace w {
+        artifact jsonReceiver: env.JSONReceiver
+        artifact simulationInterface: env.SimulationInterface
+    }
+}

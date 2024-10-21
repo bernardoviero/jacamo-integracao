@@ -1,0 +1,52 @@
+{
+    "planes": [
+        {
+            "id": "plane1",
+            "altitude": 10,
+            "posicao": 6,
+            "escala": 1,
+            "gasolina": 1,
+            "tempo": 1
+        },
+        {
+            "id": "plane2",
+            "altitude": 20,
+            "posicao": 7,
+            "escala": 1,
+            "gasolina": 0,
+            "tempo": 1
+        },
+        {
+            "id": "plane3",
+            "altitude": 30,
+            "posicao": 8,
+            "escala": 0,
+            "gasolina": 2,
+            "tempo": 1
+        },
+        {
+            "id": "plane4",
+            "altitude": 25,
+            "posicao": 9,
+            "escala": 0,
+            "gasolina": 3,
+            "tempo": 2
+        },
+        {
+            "id": "plane5",
+            "altitude": 15,
+            "posicao": 10,
+            "escala": 1,
+            "gasolina": 1,
+            "tempo": 2
+        },
+        {
+            "id": "plane6",
+            "altitude": 25,
+            "posicao": 12,
+            "escala": 0,
+            "gasolina": 1,
+            "tempo": 3
+        }
+    ]
+}
