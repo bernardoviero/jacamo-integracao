@@ -2,11 +2,13 @@ package env;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-
+import java.nio.charset.StandardCharsets;
 import cartago.Artifact;
 import cartago.INTERNAL_OPERATION;
 import cartago.OPERATION;
@@ -26,8 +28,25 @@ public class SimulationInterface extends Artifact {
     }
 
     @OPERATION
-    void sendUpdateToSimulation(int tempoAtual, int pousosRestantes, Object[] avioesPousadosArray, Object[] avioesParaDecolarArray) {
+    void sendUpdateToSimulation(int tempoAtual, int pousosRestantes, Object[] avioesPousadosArray, Object[] avioesParaDecolarArray, Object[] avioesNoArArray) {
         try {
+            String content = new String(Files.readAllBytes(Paths.get("src/env/planesData.json")), StandardCharsets.UTF_8);
+            JSONObject jsonObj = new JSONObject(content);
+            JSONArray planesArray = jsonObj.getJSONArray("planes");
+
+            JSONArray avioesNoAr = new JSONArray();
+            for (int i = 0; i < planesArray.length(); i++) {
+                JSONObject planeObj = planesArray.getJSONObject(i);
+                int tempoChegada = planeObj.getInt("tempo");
+
+                if (tempoChegada <= tempoAtual) {
+                    String planeId = planeObj.getString("id");
+                    if (!arrayContains(avioesPousadosArray, planeId)) {
+                        avioesNoAr.put(planeId);
+                    }
+                }
+            }
+
             JSONArray avioesPousados = new JSONArray();
             for (Object o : avioesPousadosArray) {
                 avioesPousados.put(o.toString());
@@ -43,13 +62,26 @@ public class SimulationInterface extends Artifact {
             json.put("pousos_restantes", pousosRestantes);
             json.put("avioes_pousados", avioesPousados);
             json.put("avioes_para_decolar", avioesParaDecolar);
+            json.put("avioes_no_ar", avioesNoAr);
 
             writeJsonToFile(json);
 
             signal("dataSent", json);
+
+        } catch (IOException e) {
+            failed("Erro ao carregar o arquivo planesData.json: " + e.getMessage());
         } catch (Exception e) {
             failed("Erro ao processar dados: " + e.getMessage());
         }
+    }
+
+    private boolean arrayContains(Object[] array, String element) {
+        for (Object obj : array) {
+            if (obj.toString().equals(element)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void writeJsonToFile(JSONObject json) {
@@ -72,3 +104,9 @@ public class SimulationInterface extends Artifact {
         signal("simulationConnected");
     }
 }
+
+// cenários:
+// 8 aviões (variavel)
+// com mais aviões chegando do que decolando -> avioes com mesma caracteristicas de gasolina e prioridade.
+// com mais aviões decolando do que chegando -> avioes com mesma caracteristicas de gasolina e prioridade.
+// cenário totalmente aleatório (absurdo)

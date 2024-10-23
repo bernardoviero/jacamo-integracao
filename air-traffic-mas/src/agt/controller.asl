@@ -166,15 +166,18 @@ avioes_para_decolar([]).  // Lista de aviões com escala = 1 prontos para decola
         .kill_agent("controller");  // Termina o agente controlador
     }.
 
-+!enviar_atualizacao_simulacao <-
++!enviar_atualizacao_simulacao <- 
     ?avioes_pousados(AvioesPousados);
     ?avioes_para_decolar(AvioesDecolagem);
     ?tempo_atual(T);
     ?pousos_restantes(N);
+    !calcular_avioes_no_ar;
+    ?avioes_no_ar(AvioesNoAr);
     !converter_lista_para_strings(AvioesPousados, AvioesPousadosStr);
     !converter_lista_para_strings(AvioesDecolagem, AvioesDecolagemStr);
-    sendUpdateToSimulation(T, N, AvioesPousadosStr, AvioesDecolagemStr);
-    .println("Atualizacao enviada para a simulacao: Tempo=", T, ", PousosRestantes=", N, ", AvioesPousados=", AvioesPousadosStr, ", AvioesParaDecolar=", AvioesDecolagemStr).
+    !converter_lista_para_strings(AvioesNoAr, AvioesNoArStr);
+    sendUpdateToSimulation(T, N, AvioesPousadosStr, AvioesDecolagemStr, AvioesNoArStr);
+    .println("Atualizacao enviada para a simulacao: Tempo=", T, ", PousosRestantes=", N, ", AvioesPousados=", AvioesPousadosStr, ", AvioesParaDecolar=", AvioesDecolagemStr, ", AvioesNoAr=", AvioesNoArStr).
 
 +!kqml_received(Sender, ILF, Content, MsgID) <-
     .println("Controlador recebeu mensagem de ", Sender, " com ILF ", ILF, " e conteudo ", Content);
@@ -183,6 +186,29 @@ avioes_para_decolar([]).  // Lista de aviões com escala = 1 prontos para decola
 +!converter_lista_para_strings([], []) <- 
     true.
 
-+!converter_lista_para_strings([Elemento | Resto], [ElementoStr | ResultadoResto]) <-
-    .concat("", Elemento, ElementoStr);
++!converter_lista_para_strings([Elemento | Resto], [ElementoStr | ResultadoResto]) <- 
+    .concat("", Elemento, ElementoStr);  // Concatena para garantir que seja uma string
     !converter_lista_para_strings(Resto, ResultadoResto).
+
++!converter_lista_para_strings(NaN, _) <- 
+    .println("Erro: Tentativa de converter NaN para lista de strings.").
+
++!calcular_avioes_no_ar : true <- 
+    ?tempo_atual(T);
+    ?avioes_pousados(AvioesPousados);
+    ?avioes_para_decolar(AvioesDecolagem);
+    Avioes = [aviao(plane1, 1), aviao(plane2, 1), aviao(plane3, 1), aviao(plane4, 2), aviao(plane5, 2), aviao(plane6, 3)];
+    !filtrar_avioes_no_ar(Avioes, AvioesPousados, AvioesDecolagem, T, []).
+    
++!filtrar_avioes_no_ar([], _, _, _, Resultado) <- 
+    -avioes_no_ar(_);  // Remove crença anterior
+    +avioes_no_ar(Resultado);  // Adiciona nova crença
+    .println("Aviões no ar no tempo ", TempoAtual, ": ", Resultado).
+
++!filtrar_avioes_no_ar([aviao(Aviao, TC) | Resto], Pousados, Decolagem, TempoAtual, Parcial) 
+    : .compare("=<", TC, TempoAtual) & not(member(Aviao, Pousados)) & not(member(Aviao, Decolagem)) <- 
+    !filtrar_avioes_no_ar(Resto, Pousados, Decolagem, TempoAtual, [Aviao | Parcial]).
+
++!filtrar_avioes_no_ar([_ | Resto], Pousados, Decolagem, TempoAtual, Parcial) <- 
+    !filtrar_avioes_no_ar(Resto, Pousados, Decolagem, TempoAtual, Parcial).
+

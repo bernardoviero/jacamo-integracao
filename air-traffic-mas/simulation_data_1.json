@@ -2,8 +2,14 @@
     "tempo_atual": 3,
     "pousos_restantes": 4,
     "avioes_pousados": [
-        "plane5",
+        "plane1",
         "plane2"
     ],
-    "avioes_para_decolar": []
+    "avioes_para_decolar": [],
+    "avioes_no_ar": [
+        "plane3",
+        "plane4",
+        "plane5",
+        "plane6"
+    ]
 }
