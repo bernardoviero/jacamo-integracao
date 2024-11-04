@@ -3,11 +3,11 @@
     "pousos_restantes": 1,
     "avioes_pousados": [
         "plane3",
-        "plane6",
         "plane5",
+        "plane6",
         "plane1",
         "plane2"
     ],
-    "avioes_para_decolar": ["plane1"],
+    "avioes_para_decolar": ["plane5"],
     "avioes_no_ar": ["plane4"]
 }

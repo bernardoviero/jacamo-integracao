@@ -5,26 +5,33 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.io.InputStreamReader;
+import java.io.BufferedReader;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-import java.nio.charset.StandardCharsets;
+
 import cartago.Artifact;
 import cartago.INTERNAL_OPERATION;
 import cartago.OPERATION;
-import jason.asSyntax.ListTerm;
-import jason.asSyntax.Literal;
-import jason.asSyntax.NumberTerm;
-import jason.asSyntax.Structure;
-import jason.asSyntax.Term;
 
 public class SimulationInterface extends Artifact {
 
     private int fileCounter = 0;
     private boolean isConnected = false;
+    private ServerSocket serverSocket;
+    private Socket clientSocket;
+    private PrintWriter out;
+    private BufferedReader in;
 
-        void init() {
+    void init() {
         isConnected = true;
+        startServer();
     }
 
     @OPERATION
@@ -66,6 +73,11 @@ public class SimulationInterface extends Artifact {
 
             writeJsonToFile(json);
 
+            if (out != null) {
+                out.println(json.toString());
+                out.flush();
+            }
+
             signal("dataSent", json);
 
         } catch (IOException e) {
@@ -73,6 +85,60 @@ public class SimulationInterface extends Artifact {
         } catch (Exception e) {
             failed("Erro ao processar dados: " + e.getMessage());
         }
+    }
+
+    private void startServer() {
+        new Thread(() -> {
+            try {
+                serverSocket = new ServerSocket(12345);
+                System.out.println("Servidor iniciado na porta 12345. Aguardando conexões...");
+                
+                clientSocket = serverSocket.accept();
+                System.out.println("Conexão estabelecida com Unity.");
+                
+                OutputStream outputStream = clientSocket.getOutputStream();
+                out = new PrintWriter(outputStream, true);
+
+                InputStreamReader inputStream = new InputStreamReader(clientSocket.getInputStream(), StandardCharsets.UTF_8);
+                in = new BufferedReader(inputStream);
+
+                listenForUnityMessages();
+
+            } catch (IOException e) {
+                System.err.println("Erro ao iniciar o servidor: " + e.getMessage());
+            }
+        }).start();
+    }
+
+    private void listenForUnityMessages() {
+        new Thread(() -> {
+            String line;
+            try {
+                while ((line = in.readLine()) != null) {
+                    System.out.println("Mensagem recebida da Unity: " + line);
+                    JSONObject receivedJson = new JSONObject(line);
+
+                    // Aqui você pode processar o JSON recebido
+                    processUnityData(receivedJson);
+                }
+            } catch (IOException e) {
+                System.err.println("Erro ao ler dados da Unity: " + e.getMessage());
+            }
+        }).start();
+    }
+
+    private void processUnityData(JSONObject receivedJson) {
+        // Exemplo de processamento dos dados recebidos
+        // Você pode manipular o JSON para atualizar o ambiente de simulação conforme necessário
+        int tempo = receivedJson.getInt("tempo");
+        JSONArray avioes = receivedJson.getJSONArray("avioes");
+
+        // Processa os dados conforme necessário
+        System.out.println("Tempo recebido: " + tempo);
+        System.out.println("Aviões recebidos: " + avioes.toString());
+
+        // Atualiza o ambiente ou sinaliza o que for necessário no sistema multiagente
+        signal("unityDataReceived", receivedJson);
     }
 
     private boolean arrayContains(Object[] array, String element) {
@@ -104,9 +170,3 @@ public class SimulationInterface extends Artifact {
         signal("simulationConnected");
     }
 }
-
-// cenários:
-// 8 aviões (variavel)
-// com mais aviões chegando do que decolando -> avioes com mesma caracteristicas de gasolina e prioridade.
-// com mais aviões decolando do que chegando -> avioes com mesma caracteristicas de gasolina e prioridade.
-// cenário totalmente aleatório (absurdo)

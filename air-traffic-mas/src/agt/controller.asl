@@ -4,18 +4,17 @@ include('string').
 
 !start.
 
-tempo_atual(1).  // Inicia o tempo em 1
-pousos_restantes(6).  // Número total de pousos necessários
-avioes_pousados([]).  // Lista de aviões que já pousaram
-propostas_processadas([]).  // Lista de propostas já processadas
-contador_pousos(0).  // Contador de pousos para a regra 2 pousos = 1 decolagem
-avioes_para_decolar([]).  // Lista de aviões com escala = 1 prontos para decolar
+tempo_atual(1). 
+pousos_restantes(6).
+avioes_pousados([]). 
+propostas_processadas([]). 
+contador_pousos(0). 
+avioes_para_decolar([]). 
 
 +!start <-
     joinWorkspace(w);
     lookupArtifact(simulationInterface, SimID);
     focus(SimID);
-    .println("Iniciando operacoes sem aguardar conexao da simulacao.");
     .broadcast(tell, tempo_atual(1));
     !iniciar_pouso.
 
